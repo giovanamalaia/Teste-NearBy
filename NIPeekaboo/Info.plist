@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSNearbyInteractionAllowOnceUsageDescription</key>
-	<string>This app demonstrates the NearbyInteraction framework. Supply a value for this string to explain how the user benefits when they allow the app to use NearbyInteraction.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -19,13 +17,17 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_nisample._tcp</string>
 	</array>
+	<key>NSNearbyInteractionAllowOnceUsageDescription</key>
+	<string>This app demonstrates the NearbyInteraction framework. Supply a value for this string to explain how the user benefits when they allow the app to use NearbyInteraction.</string>
+	<key>NSNearbyInteractionUsageDescription</key>
+	<string>This app demonstrates the NearbyInteraction framework. Supply a value for this string to explain how the user benefits when they allow the app to use NearbyInteraction.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

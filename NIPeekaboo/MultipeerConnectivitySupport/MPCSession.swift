@@ -40,7 +40,7 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
         mcBrowser.delegate = self
     }
 
-    // MARK: - MPCSession public methods
+    // MARK: - `MPCSession` public methods.
     func start() {
         mcAdvertiser.startAdvertisingPeer()
         mcBrowser.startBrowsingForPeers()
@@ -68,7 +68,7 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
         }
     }
 
-    // MARK: - MPCSession private methods
+    // MARK: - `MPCSession` private methods.
     private func peerConnected(peerID: MCPeerID) {
         if let handler = peerConnectedHandler {
             DispatchQueue.main.async {
@@ -92,7 +92,7 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
         }
     }
 
-    // MARK: - MCSessionDelegate
+    // MARK: - `MCSessionDelegate`.
     internal func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
         switch state {
         case .connected:
@@ -115,14 +115,14 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
     }
 
     internal func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
-        // Unused.
+        // The sample app intentional omits this implementation.
     }
 
     internal func session(_ session: MCSession,
                           didStartReceivingResourceWithName resourceName: String,
                           fromPeer peerID: MCPeerID,
                           with progress: Progress) {
-        // Unused.
+        // The sample app intentional omits this implementation.
     }
 
     internal func session(_ session: MCSession,
@@ -130,10 +130,10 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
                           fromPeer peerID: MCPeerID,
                           at localURL: URL?,
                           withError error: Error?) {
-        // Unused.
+        // The sample app intentional omits this implementation.
     }
 
-    // MARK: - MCNearbyServiceBrowserDelegate
+    // MARK: - `MCNearbyServiceBrowserDelegate`.
     internal func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
         guard let identityValue = info?[MPCSessionConstants.kKeyIdentity] else {
             return
@@ -144,15 +144,15 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
     }
 
     internal func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
-        //unused
+        // The sample app intentional omits this implementation.
     }
 
-    // MARK: - MCNearbyServiceAdvertiserDelegate
+    // MARK: - `MCNearbyServiceAdvertiserDelegate`.
     internal func advertiser(_ advertiser: MCNearbyServiceAdvertiser,
                              didReceiveInvitationFromPeer peerID: MCPeerID,
                              withContext context: Data?,
                              invitationHandler: @escaping (Bool, MCSession?) -> Void) {
-        // Only accept the invitation if the number of peers is less than the maximum
+        // Accept the invitation only if the number of peers is less than the maximum.
         if self.mcSession.connectedPeers.count < maxNumPeers {
             invitationHandler(true, mcSession)
         }

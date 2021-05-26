@@ -2,7 +2,7 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-The app delegate.
+A class that responds to application life cycle events.
 */
 
 import UIKit
@@ -17,7 +17,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if !NISession.isSupported {
             print("unsupported device")
             // Ensure that the device supports NearbyInteraction and present
-            //  an error-message view controller, if not.
+            //  an error message view controller, if not.
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             window?.rootViewController = storyboard.instantiateViewController(withIdentifier: "unsupportedDeviceMessage")
         }

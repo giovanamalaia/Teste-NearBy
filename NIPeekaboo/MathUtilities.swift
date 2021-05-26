@@ -2,14 +2,15 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-Implements angle conversion functions.
+A utility class that provides direction information.
 */
 
 import simd
 
-// Converts degrees to radians, and back.
 extension FloatingPoint {
+    // Converts degrees to radians.
     var degreesToRadians: Self { self * .pi / 180 }
+    // Converts radians to degrees.
     var radiansToDegrees: Self { self * 180 / .pi }
 }
 
