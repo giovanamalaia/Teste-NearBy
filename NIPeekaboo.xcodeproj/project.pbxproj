@@ -63,7 +63,7 @@
 				62C8A7F1105E38E9FB343714 /* LICENSE.txt */,
 			);
 			name = LICENSE;
-			path = .;
+			path = "";
 			sourceTree = "<group>";
 		};
 		AD026E6C248E77F60016A2B6 /* Frameworks */ = {

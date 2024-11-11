@@ -20,9 +20,9 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
     private let mcSession: MCSession
     private let localPeerID = MCPeerID(displayName: UIDevice.current.name)
     private let mcAdvertiser: MCNearbyServiceAdvertiser
-    private let mcBrowser: MCNearbyServiceBrowser
     private let identityString: String
     private let maxNumPeers: Int
+    private var mcBrowser: MCNearbyServiceBrowser?
 
     init(service: String, identity: String, maxPeers: Int) {
         serviceString = service
@@ -37,18 +37,22 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
         super.init()
         mcSession.delegate = self
         mcAdvertiser.delegate = self
-        mcBrowser.delegate = self
+        mcBrowser?.delegate = self
     }
 
     // MARK: - `MPCSession` public methods.
     func start() {
         mcAdvertiser.startAdvertisingPeer()
-        mcBrowser.startBrowsingForPeers()
+        if mcBrowser == nil {
+            mcBrowser = MCNearbyServiceBrowser(peer: localPeerID, serviceType: serviceString)
+            mcBrowser?.delegate = self
+        }
+        mcBrowser?.startBrowsingForPeers()
     }
 
     func suspend() {
         mcAdvertiser.stopAdvertisingPeer()
-        mcBrowser.stopBrowsingForPeers()
+        mcBrowser = nil
     }
 
     func invalidate() {

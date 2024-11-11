@@ -49,5 +49,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app requires local network service. Supply a value for this string to explain how the user benefits when they allow the app to access local network service.</string>
 </dict>
 </plist>
