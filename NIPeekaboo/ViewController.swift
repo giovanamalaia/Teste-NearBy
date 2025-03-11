@@ -25,6 +25,7 @@ class ViewController: UIViewController, NISessionDelegate {
     
     // MARK: - Class variables
     var sessions: [MCPeerID: NISession] = [:]
+    var distances: [MCPeerID: Float] = [:]  // 🔥 Guarda a distância mais recente de cada peer
     let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
     var currentDistanceDirectionState: DistanceDirectionState = .unknown
     var mpc: MPCSession?
@@ -49,14 +50,19 @@ class ViewController: UIViewController, NISessionDelegate {
     // MARK: - `NISessionDelegate`
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
         guard let peer = sessions.first(where: { $0.value == session })?.key else {
-            print("Session update received, but no matching peer found.")
+            print("⚠️ Session update received, but no matching peer found.")
             return
         }
 
         guard let nearbyObjectUpdate = nearbyObjects.first else { return }
 
+        // 🔥 Atualiza a distância do peer
+        if let distance = nearbyObjectUpdate.distance {
+            distances[peer] = distance
+        }
+
         let nextState = getDistanceDirectionState(from: nearbyObjectUpdate)
-        updateVisualization(from: currentDistanceDirectionState, to: nextState, with: nearbyObjectUpdate)
+        updateVisualization(from: currentDistanceDirectionState, to: nextState)
         currentDistanceDirectionState = nextState
     }
 
@@ -86,6 +92,7 @@ class ViewController: UIViewController, NISessionDelegate {
         let newSession = NISession()
         newSession.delegate = self
         sessions[peer] = newSession
+        distances[peer] = Float.greatestFiniteMagnitude  // 🔥 Inicializa a distância como muito grande
 
         guard let myToken = newSession.discoveryToken else {
             fatalError("Failed to initialize Nearby Interaction session for \(peer.displayName)")
@@ -93,9 +100,7 @@ class ViewController: UIViewController, NISessionDelegate {
 
         shareMyDiscoveryToken(token: myToken, toPeer: peer)
         
-        // 🔥 Atualiza a tela para indicar que conectou
         DispatchQueue.main.async {
-//            self.updateInformationLabel(description: "Connected to \(peer.displayName)!")
             self.monkeyLabel.text = "🥔"
         }
     }
@@ -103,9 +108,10 @@ class ViewController: UIViewController, NISessionDelegate {
     func disconnectedFromPeer(peer: MCPeerID) {
         print("❌ Peer \(peer.displayName) disconnected")
 
-        // Remove a sessão do peer
+        // Remove a sessão do peer e sua distância
         sessions[peer]?.invalidate()
         sessions.removeValue(forKey: peer)
+        distances.removeValue(forKey: peer)
 
         DispatchQueue.main.async {
             self.updateInformationLabel(description: "Peer Disconnected")
@@ -158,17 +164,17 @@ class ViewController: UIViewController, NISessionDelegate {
         return .outOfFOV
     }
 
-    func updateVisualization(from currentState: DistanceDirectionState, to nextState: DistanceDirectionState, with peer: NINearbyObject) {
+    func updateVisualization(from currentState: DistanceDirectionState, to nextState: DistanceDirectionState) {
         if currentState == .notCloseUpInFOV && nextState == .closeUpInFOV || currentState == .unknown {
             impactGenerator.impactOccurred()
         }
 
+        // 🔥 Pega a menor distância registrada
+        let minDistance = distances.values.min() ?? Float.greatestFiniteMagnitude
+        let isTouching = minDistance < nearbyDistanceThreshold
+
         UIView.animate(withDuration: 0.1, animations: {
-            if let distance = peer.distance, distance < 0.1 {
-                self.view.backgroundColor = .red
-            } else {
-                self.view.backgroundColor = .green
-            }
+            self.view.backgroundColor = isTouching ? .red : .green
 
             // 🔥 Atualiza o emoji corretamente
             switch nextState {
@@ -193,3 +199,4 @@ class ViewController: UIViewController, NISessionDelegate {
         }
     }
 }
+
