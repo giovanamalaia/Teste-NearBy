@@ -28,7 +28,7 @@ class ViewController: UIViewController, NISessionDelegate {
     // MARK: - Distance and direction state.
     
     // A threshold, in meters, the app uses to update its display.
-    let nearbyDistanceThreshold: Float = 0.3
+    let nearbyDistanceThreshold: Float = 0.1
 
     enum DistanceDirectionState {
         case closeUpInFOV, notCloseUpInFOV, outOfFOV, unknown
@@ -48,7 +48,7 @@ class ViewController: UIViewController, NISessionDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         monkeyLabel.alpha = 0.0
-        monkeyLabel.text = "🙈"
+        monkeyLabel.text = "🥔"
         centerInformationLabel.alpha = 1.0
         detailContainer.alpha = 0.0
         
@@ -344,11 +344,11 @@ class ViewController: UIViewController, NISessionDelegate {
         // Set the app's display based on peer state.
         switch nextState {
         case .closeUpInFOV:
-            monkeyLabel.text = "🙉"
+            monkeyLabel.text = "🥔"
         case .notCloseUpInFOV:
-            monkeyLabel.text = "🙈"
+            monkeyLabel.text = "🥔"
         case .outOfFOV:
-            monkeyLabel.text = "🙊"
+            monkeyLabel.text = "🥔"
         case .unknown:
             monkeyLabel.text = ""
         }
@@ -407,14 +407,20 @@ class ViewController: UIViewController, NISessionDelegate {
             impactGenerator.impactOccurred()
         }
 
-        // Animate into the next visuals.
-        UIView.animate(withDuration: 0.3, animations: {
+        UIView.animate(withDuration: 0.1, animations: {
             self.animate(from: currentState, to: nextState, with: peer)
+
+            if let distance = peer.distance, distance < 0.1 {
+                self.view.backgroundColor = .red
+            } else {
+                self.view.backgroundColor = .green
+            }
         })
     }
 
+
     func updateInformationLabel(description: String) {
-        UIView.animate(withDuration: 0.3, animations: {
+        UIView.animate(withDuration: 0.1, animations: {
             self.monkeyLabel.alpha = 0.0
             self.detailContainer.alpha = 0.0
             self.centerInformationLabel.alpha = 1.0
