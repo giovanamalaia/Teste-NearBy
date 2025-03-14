@@ -177,16 +177,7 @@ class ViewController: UIViewController, NISessionDelegate {
             self.view.backgroundColor = isTouching ? .red : .green
 
             // 🔥 Atualiza o emoji corretamente
-            switch nextState {
-            case .closeUpInFOV:
-                self.monkeyLabel.text = "🥔"
-            case .notCloseUpInFOV:
-                self.monkeyLabel.text = "🥔"
-            case .outOfFOV:
-                self.monkeyLabel.text = "🥔"
-            case .unknown:
-                self.monkeyLabel.text = "❓"
-            }
+            self.monkeyLabel.text = "🥔"
         })
     }
 
