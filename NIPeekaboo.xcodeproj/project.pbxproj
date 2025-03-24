@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		0A7C6E61248C5CEE00DEC871 /* MathUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7C6E60248C5CEE00DEC871 /* MathUtilities.swift */; };
 		71418B3224949358007DAB1C /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 71418B3124949358007DAB1C /* README.md */; };
+		AA59BBE72D84CC2A00384CC7 /* StartViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA59BBE62D84CC2700384CC7 /* StartViewController.swift */; };
+		AA59BBE92D84CC4000384CC7 /* JoinRoomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA59BBE82D84CC3F00384CC7 /* JoinRoomViewController.swift */; };
+		AA59BBED2D84D27500384CC7 /* ConnectedDevicesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA59BBEC2D84D27400384CC7 /* ConnectedDevicesViewController.swift */; };
+		AA626AC02D8B54CF00C6DD92 /* GreenScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA626ABF2D8B54CF00C6DD92 /* GreenScreenViewController.swift */; };
 		AD026E6B248E77B10016A2B6 /* MPCSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD026E6A248E77B10016A2B6 /* MPCSession.swift */; };
 		AD026E6E248E77F60016A2B6 /* MultipeerConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD026E6D248E77F60016A2B6 /* MultipeerConnectivity.framework */; };
 		AD026E70248E77FD0016A2B6 /* NearbyInteraction.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD026E6F248E77FD0016A2B6 /* NearbyInteraction.framework */; };
@@ -24,6 +28,10 @@
 		43D6B566D60E1D86FC1BA04C /* SampleCode.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = SampleCode.xcconfig; path = Configuration/SampleCode.xcconfig; sourceTree = "<group>"; };
 		62C8A7F1105E38E9FB343714 /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		71418B3124949358007DAB1C /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		AA59BBE62D84CC2700384CC7 /* StartViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartViewController.swift; sourceTree = "<group>"; };
+		AA59BBE82D84CC3F00384CC7 /* JoinRoomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinRoomViewController.swift; sourceTree = "<group>"; };
+		AA59BBEC2D84D27400384CC7 /* ConnectedDevicesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectedDevicesViewController.swift; sourceTree = "<group>"; };
+		AA626ABF2D8B54CF00C6DD92 /* GreenScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GreenScreenViewController.swift; sourceTree = "<group>"; };
 		AD026E6A248E77B10016A2B6 /* MPCSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCSession.swift; sourceTree = "<group>"; };
 		AD026E6D248E77F60016A2B6 /* MultipeerConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MultipeerConnectivity.framework; path = System/Library/Frameworks/MultipeerConnectivity.framework; sourceTree = SDKROOT; };
 		AD026E6F248E77FD0016A2B6 /* NearbyInteraction.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NearbyInteraction.framework; path = System/Library/Frameworks/NearbyInteraction.framework; sourceTree = SDKROOT; };
@@ -105,6 +113,9 @@
 		ADDB28FC24897F7D00F72056 /* NIPeekaboo */ = {
 			isa = PBXGroup;
 			children = (
+				AA59BBEC2D84D27400384CC7 /* ConnectedDevicesViewController.swift */,
+				AA59BBE82D84CC3F00384CC7 /* JoinRoomViewController.swift */,
+				AA59BBE62D84CC2700384CC7 /* StartViewController.swift */,
 				AD0CC69E2489E93E00475A13 /* MultipeerConnectivitySupport */,
 				ADDB28FD24897F7D00F72056 /* AppDelegate.swift */,
 				0A7C6E60248C5CEE00DEC871 /* MathUtilities.swift */,
@@ -113,6 +124,7 @@
 				ADDB290624897F7E00F72056 /* Assets.xcassets */,
 				ADDB290824897F7E00F72056 /* LaunchScreen.storyboard */,
 				ADDB290B24897F7E00F72056 /* Info.plist */,
+				AA626ABF2D8B54CF00C6DD92 /* GreenScreenViewController.swift */,
 			);
 			path = NIPeekaboo;
 			sourceTree = "<group>";
@@ -190,10 +202,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA59BBE72D84CC2A00384CC7 /* StartViewController.swift in Sources */,
 				ADDB290224897F7D00F72056 /* ViewController.swift in Sources */,
+				AA626AC02D8B54CF00C6DD92 /* GreenScreenViewController.swift in Sources */,
+				AA59BBED2D84D27500384CC7 /* ConnectedDevicesViewController.swift in Sources */,
 				AD026E6B248E77B10016A2B6 /* MPCSession.swift in Sources */,
 				ADDB28FE24897F7D00F72056 /* AppDelegate.swift in Sources */,
 				0A7C6E61248C5CEE00DEC871 /* MathUtilities.swift in Sources */,
+				AA59BBE92D84CC4000384CC7 /* JoinRoomViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

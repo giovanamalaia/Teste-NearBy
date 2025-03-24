@@ -1,193 +1,192 @@
 /*
-See the LICENSE.txt file for this sample’s licensing information.
-
-Abstract:
-A view controller that facilitates the sample app's primary user experience.
-*/
+ See the LICENSE.txt file for this sample’s licensing information.
+ 
+ Abstract:
+ A view controller that facilitates the sample app's primary user experience.
+ */
 
 import UIKit
 import NearbyInteraction
 import MultipeerConnectivity
+import UIKit
 
-class ViewController: UIViewController, NISessionDelegate {
-
-    // MARK: - `IBOutlet` instances.
-    @IBOutlet weak var monkeyLabel: UILabel!
-    @IBOutlet weak var centerInformationLabel: UILabel!
-    @IBOutlet weak var detailContainer: UIView!
-
-    // MARK: - Distance and direction state.
-    let nearbyDistanceThreshold: Float = 0.1
-
-    enum DistanceDirectionState {
-        case closeUpInFOV, notCloseUpInFOV, outOfFOV, unknown
-    }
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    // MARK: - Class variables
-    var sessions: [MCPeerID: NISession] = [:]
-    var distances: [MCPeerID: Float] = [:]  // 🔥 Guarda a distância mais recente de cada peer
-    let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
-    var currentDistanceDirectionState: DistanceDirectionState = .unknown
-    var mpc: MPCSession?
-    var peerDisplayName: String?
+    var session: MPCSession?
+    private var roomName: String
+    private var isCreatingRoom: Bool // Indica se o usuário está criando a sala
+    private var tableView = UITableView()
+    private var connectedDevices: [MCPeerID] = []
+    private let roomLabel = UILabel()
+    private let devicesLabel = UILabel() // Exibe a quantidade de dispositivos conectados
+    private let startButton = UIButton(type: .system)
+    private let waitingLabel = UILabel()
 
-    // MARK: - UI life cycle.
+    init(roomName: String, isCreatingRoom: Bool) {
+        self.roomName = roomName
+        self.isCreatingRoom = isCreatingRoom
+        super.init(nibName: nil, bundle: nil)
+        
+        self.session = MPCSession(roomName: roomName, isHost: isCreatingRoom)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented. Use init(roomName:isCreatingRoom:) instead.")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        monkeyLabel.alpha = 1.0
-        monkeyLabel.text = "🥔"
-        centerInformationLabel.alpha = 1.0
-        detailContainer.alpha = 0.0
+        view.backgroundColor = .white
+        setupUI()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(showGreenScreen), name: NSNotification.Name("GameStarted"), object: nil)
 
-        startup()
-    }
 
-    func startup() {
-        updateInformationLabel(description: "Discovering Peers ...")
-        startupMPC()
-    }
+        guard let session = session else { return }
 
-    // MARK: - `NISessionDelegate`
-    func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
-        guard let peer = sessions.first(where: { $0.value == session })?.key else {
-            print("⚠️ Session update received, but no matching peer found.")
-            return
+        // Se este dispositivo é o criador da sala, ele deve anunciar a sala
+        if isCreatingRoom {
+            print("📢 Criando e anunciando a sala: \(roomName)")
+            session.startHosting()
+        } else {
+            print("🔍 Procurando por salas disponíveis...")
+            session.startBrowsing()
         }
 
-        guard let nearbyObjectUpdate = nearbyObjects.first else { return }
+        // ✅ Configurar o `connectedPeersHandler` aqui para **todos** os dispositivos
+        print("📡 Configurando connectedPeersHandler na tela...")
 
-        // 🔥 Atualiza a distância do peer
-        if let distance = nearbyObjectUpdate.distance {
-            distances[peer] = distance
+        session.connectedPeersHandler = { [weak self] peers in
+            guard let self = self else { return }
+
+            print("📡 Atualizando UI com novos peers conectados: \(peers.map { $0.displayName })")
+
+            DispatchQueue.main.async {
+                self.connectedDevices = peers
+                self.devicesLabel.text = "Devices Conectados: \(peers.count)"
+                self.tableView.reloadData()
+
+                if !self.isCreatingRoom {
+                    self.waitingLabel.text = "Aguardando o host iniciar... (\(peers.count) conectados)"
+                }
+
+                // 🔥 Força atualização da UI para garantir que o SwiftUI renderize as mudanças
+                self.view.setNeedsLayout()
+                self.view.layoutIfNeeded()
+            }
         }
 
-        let nextState = getDistanceDirectionState(from: nearbyObjectUpdate)
-        updateVisualization(from: currentDistanceDirectionState, to: nextState)
-        currentDistanceDirectionState = nextState
     }
 
-    func session(_ session: NISession, didInvalidateWith error: Error) {
-        currentDistanceDirectionState = .unknown
-        startup()
-    }
+    
+    func setupUI() {
+            roomLabel.text = "Sala: \(roomName)"
+            roomLabel.font = UIFont.boldSystemFont(ofSize: 22)
+            roomLabel.textAlignment = .center
+            roomLabel.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(roomLabel)
 
-    func startupMPC() {
-        if mpc == nil {
-            #if targetEnvironment(simulator)
-            mpc = MPCSession(service: "nisample", identity: "com.example.simulator.peekaboo-nearbyinteraction", maxPeers: 3)
-            #else
-            mpc = MPCSession(service: "nisample", identity: "com.example.peekaboo-nearbyinteraction", maxPeers: 3)
-            #endif
-            mpc?.peerConnectedHandler = connectedToPeer
-            mpc?.peerDataHandler = dataReceivedHandler
-            mpc?.peerDisconnectedHandler = disconnectedFromPeer
+            devicesLabel.text = "Devices Conectados: 0"
+            devicesLabel.font = UIFont.systemFont(ofSize: 18)
+            devicesLabel.textAlignment = .center
+            devicesLabel.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(devicesLabel)
+
+            tableView.translatesAutoresizingMaskIntoConstraints = false
+            tableView.delegate = self
+            tableView.dataSource = self
+            tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+            view.addSubview(tableView)
+
+            if isCreatingRoom {
+                // ✅ O host vê o botão "Start"
+                startButton.setTitle("Start", for: .normal)
+                startButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
+                startButton.setTitleColor(.white, for: .normal)
+                startButton.backgroundColor = .systemBlue
+                startButton.layer.cornerRadius = 10
+                startButton.addTarget(self, action: #selector(startGame), for: .touchUpInside)
+                startButton.translatesAutoresizingMaskIntoConstraints = false
+                view.addSubview(startButton)
+            } else {
+                // ✅ Participantes veem "Aguardando..."
+                waitingLabel.text = "Aguardando o host iniciar..."
+                waitingLabel.font = UIFont.systemFont(ofSize: 18)
+                waitingLabel.textAlignment = .center
+                waitingLabel.translatesAutoresizingMaskIntoConstraints = false
+                view.addSubview(waitingLabel)
+
+                
+            }
+
+
+            // ✅ Layout para todos os elementos
+            NSLayoutConstraint.activate([
+                roomLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+                roomLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+
+                devicesLabel.topAnchor.constraint(equalTo: roomLabel.bottomAnchor, constant: 10),
+                devicesLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+
+                tableView.topAnchor.constraint(equalTo: devicesLabel.bottomAnchor, constant: 10),
+                tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            ])
+
+            if isCreatingRoom {
+                NSLayoutConstraint.activate([
+                    startButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+                    startButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                    startButton.widthAnchor.constraint(equalToConstant: 150),
+                    startButton.heightAnchor.constraint(equalToConstant: 50)
+                ])
+            } else {
+                NSLayoutConstraint.activate([
+                    waitingLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+                    waitingLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+                ])
+            }
         }
-        mpc?.invalidate()
-        mpc?.start()
-    }
+    
+    @objc func startGame() {
+        guard let session = session else { return }
 
-    func connectedToPeer(peer: MCPeerID) {
-        print("✅ Connected to peer: \(peer.displayName)")
+        let startSignal = "START".data(using: .utf8)!
+        session.sendDataToAllPeers(data: startSignal)
 
-        let newSession = NISession()
-        newSession.delegate = self
-        sessions[peer] = newSession
-        distances[peer] = Float.greatestFiniteMagnitude  // 🔥 Inicializa a distância como muito grande
-
-        guard let myToken = newSession.discoveryToken else {
-            fatalError("Failed to initialize Nearby Interaction session for \(peer.displayName)")
-        }
-
-        shareMyDiscoveryToken(token: myToken, toPeer: peer)
+        print("🎮 Jogo iniciado pelo host!")
         
         DispatchQueue.main.async {
-            self.monkeyLabel.text = "🥔"
+            let greenVC = GreenScreenViewController()
+            greenVC.session = session // ✅ Aqui é essencial!
+            greenVC.modalPresentationStyle = .fullScreen
+            self.present(greenVC, animated: true)
         }
     }
 
-    func disconnectedFromPeer(peer: MCPeerID) {
-        print("❌ Peer \(peer.displayName) disconnected")
 
-        // Remove a sessão do peer e sua distância
-        sessions[peer]?.invalidate()
-        sessions.removeValue(forKey: peer)
-        distances.removeValue(forKey: peer)
 
-        DispatchQueue.main.async {
-            self.updateInformationLabel(description: "Peer Disconnected")
-            self.monkeyLabel.text = "🥔"
-        }
+    // MARK: - ✅ Métodos Obrigatórios de UITableViewDataSource
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return connectedDevices.count // ✅ Retorna o número de dispositivos conectados
     }
 
-    func dataReceivedHandler(data: Data, peer: MCPeerID) {
-        guard let discoveryToken = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NIDiscoveryToken.self, from: data) else {
-            print("⚠️ Failed to decode discovery token from \(peer.displayName)")
-            return
-        }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        cell.textLabel?.text = connectedDevices[indexPath.row].displayName // ✅ Mostra o nome do dispositivo conectado
+        return cell
+    }
+    
+    @objc func showGreenScreen() {
+        guard let session = self.session else { return }
 
-        print("🔄 Received discovery token from \(peer.displayName)")
-
-        guard let session = sessions[peer] else {
-            print("⚠️ No session found for \(peer.displayName)")
-            return
-        }
-
-        let config = NINearbyPeerConfiguration(peerToken: discoveryToken)
-        session.run(config)
+        let greenVC = GreenScreenViewController()
+        greenVC.session = session
+        greenVC.modalPresentationStyle = .fullScreen
+        self.present(greenVC, animated: true)
     }
 
-    func shareMyDiscoveryToken(token: NIDiscoveryToken, toPeer peer: MCPeerID) {
-        guard let encodedData = try? NSKeyedArchiver.archivedData(withRootObject: token, requiringSecureCoding: true) else {
-            print("⚠️ Failed to encode discovery token for \(peer.displayName)")
-            return
-        }
 
-        mpc?.sendData(data: encodedData, peers: [peer], mode: .reliable)
-        print("📤 Sent discovery token to \(peer.displayName)")
-    }
-
-    // MARK: - Visualizations
-    func isNearby(_ distance: Float) -> Bool {
-        return distance < nearbyDistanceThreshold
-    }
-
-    func getDistanceDirectionState(from nearbyObject: NINearbyObject) -> DistanceDirectionState {
-        let isNearby = nearbyObject.distance.map(isNearby(_:)) ?? false
-        let directionAvailable = nearbyObject.direction != nil
-
-        if isNearby && directionAvailable {
-            return .closeUpInFOV
-        }
-        if !isNearby && directionAvailable {
-            return .notCloseUpInFOV
-        }
-        return .outOfFOV
-    }
-
-    func updateVisualization(from currentState: DistanceDirectionState, to nextState: DistanceDirectionState) {
-        if currentState == .notCloseUpInFOV && nextState == .closeUpInFOV || currentState == .unknown {
-            impactGenerator.impactOccurred()
-        }
-
-        // 🔥 Pega a menor distância registrada
-        let minDistance = distances.values.min() ?? Float.greatestFiniteMagnitude
-        let isTouching = minDistance < nearbyDistanceThreshold
-
-        UIView.animate(withDuration: 0.1, animations: {
-            self.view.backgroundColor = isTouching ? .red : .green
-
-            // 🔥 Atualiza o emoji corretamente
-            self.monkeyLabel.text = "🥔"
-        })
-    }
-
-    func updateInformationLabel(description: String) {
-        DispatchQueue.main.async {
-            UIView.animate(withDuration: 0.1, animations: {
-                self.centerInformationLabel.alpha = 1.0
-                self.centerInformationLabel.text = description
-            })
-        }
-    }
 }
 
