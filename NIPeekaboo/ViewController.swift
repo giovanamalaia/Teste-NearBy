@@ -39,7 +39,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         view.backgroundColor = .white
         setupUI()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(showGreenScreen), name: NSNotification.Name("GameStarted"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(showGreenScreen(_:)), name: NSNotification.Name("GameStarted"), object: nil)
 
 
         guard let session = session else { return }
@@ -178,14 +178,18 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return cell
     }
     
-    @objc func showGreenScreen() {
-        guard let session = self.session else { return }
+    @objc func showGreenScreen(_ notification: Notification) {
+        guard let session = notification.userInfo?["session"] as? MPCSession else {
+            print("🚫 Sessão não recebida na notificação!")
+            return
+        }
 
         let greenVC = GreenScreenViewController()
         greenVC.session = session
         greenVC.modalPresentationStyle = .fullScreen
         self.present(greenVC, animated: true)
     }
+
 
 
 }
