@@ -4,167 +4,13 @@ See the LICENSE.txt file for this sample’s licensing information.
 Abstract:
 A class that manages peer discovery-token exchange over the local network by using MultipeerConnectivity.
 */
-
 import Foundation
 import MultipeerConnectivity
+import NearbyInteraction
 
 struct MPCSessionConstants {
     static let kKeyIdentity: String = "identity"
 }
-//
-//class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, MCNearbyServiceAdvertiserDelegate {
-//    var peerDataHandler: ((Data, MCPeerID) -> Void)?
-//    var peerConnectedHandler: ((MCPeerID) -> Void)?
-//    var peerDisconnectedHandler: ((MCPeerID) -> Void)?
-//    private let serviceString: String
-//    private let mcSession: MCSession
-//    private let localPeerID = MCPeerID(displayName: UIDevice.current.name)
-//    private let mcAdvertiser: MCNearbyServiceAdvertiser
-//    private let identityString: String
-//    private let maxNumPeers: Int
-//    private var mcBrowser: MCNearbyServiceBrowser?
-//
-//    init(service: String, identity: String, maxPeers: Int) {
-//        serviceString = service
-//        identityString = identity
-//        mcSession = MCSession(peer: localPeerID, securityIdentity: nil, encryptionPreference: .required)
-//        mcAdvertiser = MCNearbyServiceAdvertiser(peer: localPeerID,
-//                                                 discoveryInfo: [MPCSessionConstants.kKeyIdentity: identityString],
-//                                                 serviceType: serviceString)
-//        mcBrowser = MCNearbyServiceBrowser(peer: localPeerID, serviceType: serviceString)
-//        maxNumPeers = maxPeers
-//
-//        super.init()
-//        mcSession.delegate = self
-//        mcAdvertiser.delegate = self
-//        mcBrowser?.delegate = self
-//    }
-//
-//    // MARK: - `MPCSession` public methods.
-//    func start() {
-//        mcAdvertiser.startAdvertisingPeer()
-//        if mcBrowser == nil {
-//            mcBrowser = MCNearbyServiceBrowser(peer: localPeerID, serviceType: serviceString)
-//            mcBrowser?.delegate = self
-//        }
-//        mcBrowser?.startBrowsingForPeers()
-//    }
-//
-//    func suspend() {
-//        mcAdvertiser.stopAdvertisingPeer()
-//        mcBrowser = nil
-//    }
-//
-//    func invalidate() {
-//        suspend()
-//        mcSession.disconnect()
-//    }
-//
-//    func sendDataToAllPeers(data: Data) {
-//        sendData(data: data, peers: mcSession.connectedPeers, mode: .reliable)
-//    }
-//
-//    func sendData(data: Data, peers: [MCPeerID], mode: MCSessionSendDataMode) {
-//        do {
-//            try mcSession.send(data, toPeers: peers, with: mode)
-//        } catch let error {
-//            NSLog("Error sending data: \(error)")
-//        }
-//    }
-//
-//    // MARK: - `MPCSession` private methods.
-//    private func peerConnected(peerID: MCPeerID) {
-//        if let handler = peerConnectedHandler {
-//            DispatchQueue.main.async {
-//                handler(peerID)
-//            }
-//        }
-//        if mcSession.connectedPeers.count == maxNumPeers {
-//            self.suspend()
-//        }
-//    }
-//
-//    private func peerDisconnected(peerID: MCPeerID) {
-//        if let handler = peerDisconnectedHandler {
-//            DispatchQueue.main.async {
-//                handler(peerID)
-//            }
-//        }
-//
-//        if mcSession.connectedPeers.count < maxNumPeers {
-//            self.start()
-//        }
-//    }
-//
-//    // MARK: - `MCSessionDelegate`.
-//    internal func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
-//        switch state {
-//        case .connected:
-//            peerConnected(peerID: peerID)
-//        case .notConnected:
-//            peerDisconnected(peerID: peerID)
-//        case .connecting:
-//            break
-//        @unknown default:
-//            fatalError("Unhandled MCSessionState")
-//        }
-//    }
-//
-//    internal func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
-//        if let handler = peerDataHandler {
-//            DispatchQueue.main.async {
-//                handler(data, peerID)
-//            }
-//        }
-//    }
-//
-//    internal func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
-//        // The sample app intentional omits this implementation.
-//    }
-//
-//    internal func session(_ session: MCSession,
-//                          didStartReceivingResourceWithName resourceName: String,
-//                          fromPeer peerID: MCPeerID,
-//                          with progress: Progress) {
-//        // The sample app intentional omits this implementation.
-//    }
-//
-//    internal func session(_ session: MCSession,
-//                          didFinishReceivingResourceWithName resourceName: String,
-//                          fromPeer peerID: MCPeerID,
-//                          at localURL: URL?,
-//                          withError error: Error?) {
-//        // The sample app intentional omits this implementation.
-//    }
-//
-//    // MARK: - `MCNearbyServiceBrowserDelegate`.
-//    internal func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
-//        guard let identityValue = info?[MPCSessionConstants.kKeyIdentity] else {
-//            return
-//        }
-//        if identityValue == identityString && mcSession.connectedPeers.count < maxNumPeers {
-//            browser.invitePeer(peerID, to: mcSession, withContext: nil, timeout: 10)
-//        }
-//    }
-//
-//    internal func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
-//        // The sample app intentional omits this implementation.
-//    }
-//
-//    // MARK: - `MCNearbyServiceAdvertiserDelegate`.
-//    internal func advertiser(_ advertiser: MCNearbyServiceAdvertiser,
-//                             didReceiveInvitationFromPeer peerID: MCPeerID,
-//                             withContext context: Data?,
-//                             invitationHandler: @escaping (Bool, MCSession?) -> Void) {
-//        // Accept the invitation only if the number of peers is less than the maximum.
-//        if self.mcSession.connectedPeers.count < maxNumPeers {
-//            invitationHandler(true, mcSession)
-//        }
-//    }
-//}
-import Foundation
-import MultipeerConnectivity
-import NearbyInteraction
 
 class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, MCNearbyServiceAdvertiserDelegate, NISessionDelegate {
     
@@ -188,7 +34,9 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
     var localDiscoveryToken: NIDiscoveryToken?
     var nearbyDistanceHandler: ((MCPeerID, Float) -> Void)?
     
-    
+    var didUpdateDistances: (([MCPeerID: Float]) -> Void)?
+    private var peerDistances: [MCPeerID: Float] = [:]
+
 
     init(roomName: String, isHost: Bool) {
         self.roomName = roomName
@@ -247,10 +95,13 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
 
             // 👇 Envia o token local para o peer conectado
             if let token = self.localDiscoveryToken {
-                print("📤 Enviando token local após conexão...")
-                self.sendDiscoveryToken(token, to: peerID)
+                for peer in session.connectedPeers {
+                    if peer != self.localPeerID {
+                        print("📤 Enviando token local para \(peer.displayName)")
+                        self.sendDiscoveryToken(token, to: peer)
+                    }
+                }
             }
-
 
 
         case .notConnected:
@@ -280,13 +131,17 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
                 self.discoveryTokenReceivedHandler?(peerID, token)
             }
 
-            // ✅ Executa sessão de Nearby Interaction com esse token
             let config = NINearbyPeerConfiguration(peerToken: token)
 
             if let niSession = self.niSessions[peerID] {
                 niSession.run(config)
                 print("🚀 Executando NI com sessão existente para \(peerID.displayName)")
             } else {
+                if self.niSessions[peerID] != nil {
+                    print("ℹ️ Sessão com \(peerID.displayName) já existe. Ignorando nova.")
+                    return
+                }
+
                 let newSession = NISession()
                 newSession.delegate = self
                 self.niSessions[peerID] = newSession
@@ -297,11 +152,13 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
             return
         }
 
+
+
         // 📌 Se for um comando "START"...
         if let message = String(data: data, encoding: .utf8), message == "START" {
             print("🎮 Comando START recebido! Trocando para a tela verde...")
             DispatchQueue.main.async {
-                NotificationCenter.default.post(name: NSNotification.Name("GameStarted"), object: nil)
+                NotificationCenter.default.post(name: NSNotification.Name("GameStarted"), object: nil, userInfo: ["session": self])
             }
             return
         }
@@ -414,6 +271,7 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
     }
     
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
+        print("🧠 [\(UIDevice.current.name)] delegate NI disparou. Objects: \(nearbyObjects)")
         guard let nearbyObject = nearbyObjects.first,
               let distance = nearbyObject.distance,
               let peerID = niSessions.first(where: { $0.value == session })?.key else {
@@ -423,10 +281,15 @@ class MPCSession: NSObject, MCSessionDelegate, MCNearbyServiceBrowserDelegate, M
 
         print("📏 [NI] Distância detectada com \(peerID.displayName): \(distance)m")
 
+        // Atualiza a lista
+        peerDistances[peerID] = distance
+
+        // Notifica quem estiver escutando
         DispatchQueue.main.async {
-            self.nearbyDistanceHandler?(peerID, distance)
+            self.didUpdateDistances?(self.peerDistances)
         }
     }
+
 
 
 }

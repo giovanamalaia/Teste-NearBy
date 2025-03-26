@@ -16,7 +16,6 @@ class GreenScreenViewController: UIViewController, NISessionDelegate {
     private var peerDistances: [MCPeerID: Float] = [:]
 
     let nearbyDistanceThreshold: Float = 0.3
-    var localNISession: NISession?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,50 +25,33 @@ class GreenScreenViewController: UIViewController, NISessionDelegate {
             print("🚫 Sem sessão MPC ativa!")
             return
         }
+        
+        session.didUpdateDistances = { [weak self] distances in
+            print("👀 [\(UIDevice.current.name)] Recebeu atualizações de distância: \(distances)")
+            guard let self = self else { return }
 
-        // Cria sua própria NISession
-        localNISession = NISession()
-        localNISession?.delegate = self
+            let isNearby = distances.values.contains(where: { $0 < self.nearbyDistanceThreshold })
 
-        if let localToken = localNISession?.discoveryToken {
-            print("✅ [GREEN] Token local disponível")
-
-            // Envia para todos os peers conectados
-            for peer in session.getConnectedPeers() {
-                print("📤 [GREEN] Enviando discoveryToken para \(peer.displayName)")
-                session.sendDiscoveryToken(localToken, to: peer)
+            DispatchQueue.main.async {
+                let newColor: UIColor = isNearby ? .red : .green
+                if self.view.backgroundColor != newColor {
+                    print("🎨 Mudando cor para \(newColor == .red ? "🔴" : "🟢")")
+                    self.view.backgroundColor = newColor
+                }
             }
-
-            // ⚠️ IMPORTANTE: Salva o token no próprio MPCSession para que ele também envie quando outros peers se conectarem depois
-            session.localDiscoveryToken = localToken
-
-        } else {
-            print("❌ [GREEN] Token local não disponível")
-        }
-
-        // Continua igual:
-        session.nearbyDistanceHandler = { [weak self] peerID, distance in
-            print("📏 [VIEW] \(peerID.displayName): \(distance)m")
-            self?.peerDistances[peerID] = distance
-            self?.checkForNearbyPeers()
         }
     }
 
     // MARK: - 🛑 Verifica distância e troca cor da tela
     func checkForNearbyPeers() {
-        print("🧪 Verificando proximidade...")
-
         let minDistance = peerDistances.values.min() ?? Float.greatestFiniteMagnitude
         let isNearby = minDistance < nearbyDistanceThreshold
-
-        print("🖥 [DEBUG] Menor distância detectada: \(minDistance)m")
 
         DispatchQueue.main.async {
             let newColor: UIColor = isNearby ? .red : .green
             if self.view.backgroundColor != newColor {
-                print("🎨 [DEBUG] Mudando cor para \(isNearby ? "🔴 Vermelho" : "🟢 Verde")")
+                self.view.backgroundColor = newColor
             }
-            self.view.backgroundColor = newColor
         }
     }
 
@@ -77,20 +59,4 @@ class GreenScreenViewController: UIViewController, NISessionDelegate {
     func session(_ session: NISession, didInvalidateWith error: Error) {
         print("❌ Sessão NI inválida: \(error.localizedDescription)")
     }
-    
-    func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
-        guard let nearbyObject = nearbyObjects.first,
-              let distance = nearbyObject.distance else {
-            print("⚠️ [GREEN] Objeto Nearby inválido ou distância ausente")
-            return
-        }
-
-        print("📏 [GREEN] Distância detectada: \(distance)m")
-
-        DispatchQueue.main.async {
-            let isNearby = distance < self.nearbyDistanceThreshold
-            self.view.backgroundColor = isNearby ? .red : .green
-        }
-    }
-
 }
